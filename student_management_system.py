@@ -1,4 +1,3 @@
-student_management_system
 import json
 
 FILE_NAME = "students.json"
@@ -14,7 +13,7 @@ def load_students():
         return []
 
 
-def save_students(students):
+def save_students():
     with open(FILE_NAME, "w") as file:
         json.dump(students, file, indent=4)
 
@@ -22,21 +21,32 @@ def save_students(students):
 students = load_students()
 
 
+# ---------------- HELPER FUNCTION ---------------- #
+
+def find_student(roll):
+    for student in students:
+        if student["roll"] == roll:
+            return student
+    return None
+
+
 # ---------------- CORE FEATURES ---------------- #
 
 def add_student():
     print("\n--- Add Student ---")
 
-    roll = input("Enter Roll Number: ")
+    roll = input("Enter Roll Number: ").strip()
 
-    # Prevent duplicate roll numbers
-    for s in students:
-        if s["roll"] == roll:
-            print("Student with this roll number already exists!\n")
-            return
+    if find_student(roll):
+        print("Student with this roll number already exists!\n")
+        return
 
-    name = input("Enter Name: ")
-    course = input("Enter Course: ")
+    name = input("Enter Name: ").strip()
+    course = input("Enter Course: ").strip()
+
+    if not name or not course:
+        print("Name and Course cannot be empty.\n")
+        return
 
     student = {
         "name": name,
@@ -45,7 +55,7 @@ def add_student():
     }
 
     students.append(student)
-    save_students(students)
+    save_students()
 
     print("Student added successfully!\n")
 
@@ -67,68 +77,71 @@ def view_students():
 def search_student():
     print("\n--- Search Student ---")
 
-    roll = input("Enter Roll Number: ")
+    roll = input("Enter Roll Number: ").strip()
+    student = find_student(roll)
 
-    for s in students:
-        if s["roll"] == roll:
-            print("\nStudent Found")
-            print("Name:", s["name"])
-            print("Course:", s["course"])
-            print()
-            return
-
-    print("Student not found.\n")
+    if student:
+        print("\nStudent Found")
+        print("Name:", student["name"])
+        print("Course:", student["course"])
+        print()
+    else:
+        print("Student not found.\n")
 
 
 def update_student():
     print("\n--- Update Student ---")
 
-    roll = input("Enter Roll Number: ")
+    roll = input("Enter Roll Number: ").strip()
+    student = find_student(roll)
 
-    for s in students:
-        if s["roll"] == roll:
-            print("Leave blank to keep current value")
+    if not student:
+        print("Student not found.\n")
+        return
 
-            name = input(f"New Name ({s['name']}): ")
-            course = input(f"New Course ({s['course']}): ")
+    print("Leave blank to keep current value")
 
-            if name:
-                s["name"] = name
-            if course:
-                s["course"] = course
+    name = input(f"New Name ({student['name']}): ").strip()
+    course = input(f"New Course ({student['course']}): ").strip()
 
-            save_students(students)
+    if name:
+        student["name"] = name
+    if course:
+        student["course"] = course
 
-            print("Student updated successfully!\n")
-            return
+    save_students()
 
-    print("Student not found.\n")
+    print("Student updated successfully!\n")
 
 
 def delete_student():
     print("\n--- Delete Student ---")
 
-    roll = input("Enter Roll Number: ")
+    roll = input("Enter Roll Number: ").strip()
+    student = find_student(roll)
 
-    for s in students:
-        if s["roll"] == roll:
-            students.remove(s)
-            save_students(students)
+    if not student:
+        print("Student not found.\n")
+        return
 
-            print("Student deleted successfully!\n")
-            return
+    confirm = input(f"Are you sure you want to delete {student['name']}? (y/n): ")
 
-    print("Student not found.\n")
+    if confirm.lower() == "y":
+        students.remove(student)
+        save_students()
+        print("Student deleted successfully!\n")
+    else:
+        print("Deletion cancelled.\n")
 
 
 def sort_students():
-    print("\n--- Sort Students by Name ---")
+    print("\n--- Students Sorted by Name ---")
 
     if not students:
         print("No students found.\n")
         return
 
-    sorted_students = sorted(students, key=lambda x: x["name"])
+    sorted_students = sorted(students, key=lambda x: x["name"].lower())
 
     for s in sorted_students:
         print(f"Name: {s['name']} | Roll: {s['roll']} | Course: {s['course']}")
@@ -153,7 +166,7 @@ def menu():
         print("8. Exit")
         print("===============================================")
 
-        choice = input("Enter your choice: ")
+        choice = input("Enter your choice: ").strip()
 
         if choice == "1":
             add_student()
